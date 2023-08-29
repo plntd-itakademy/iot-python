@@ -8,6 +8,7 @@ import threading
 red_led = LED(17)
 green_led = LED(27)
 cart_items_count = 0 # Compteur nbr d'articles scannés
+total_price = 0
 
 I2C_ADDR = 0x3F
 I2C_NUM_ROWS = 2
@@ -41,6 +42,7 @@ def is_json(string):
 
 def scan_item(code):
     global cart_items_count
+    global total_price
     url = "http://localhost/testApi/api.php?code=" + code
     response = requests.get(url)
 
@@ -48,22 +50,30 @@ def scan_item(code):
         response_json = response.json()
         green_led.on()
         cart_items_count += 1
+        total_price += response_json['price']
 
         thread = threading.Timer(2, lambda: green_led.off())
         thread.start()
 
-        display_text('Nbr article : ' + str(cart_items_count), 0)
-        sleep(2)
         display_text(response_json['name'], 0)
         display_text(str(response_json['price']), 1)
+
+        sleep(2)
+
+        display_text('Nbr article : ' + str(cart_items_count), 0)
+        display_text('Total : ' + str(round(total_price, 2)), 1)        
     else:
         red_led.on()
         thread = threading.Timer(2, lambda: red_led.off())
         thread.start()
         display_text("Code barre inconnu", 0)
+        display_text("", 1)
 
 # Codes disponbles :
 # 258454125841
 # 465659887454
-scanned_code = input("Code barre du produit : ")
-scan_item(scanned_code)
+# 3124480167026
+
+while True:
+    scanned_code = input("Code barre du produit : ")
+    scan_item(scanned_code)
