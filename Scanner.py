@@ -4,6 +4,14 @@ from time import sleep
 import json
 import requests
 import threading
+import mysql.connector
+
+db = mysql.connector.connect(
+    host="localhost",
+    user="root",
+    password="root",
+    database="barcodepro"
+)
 
 red_led = LED(17)
 green_led = LED(27)
@@ -81,10 +89,14 @@ def scan_item(code):
 
     turn_on_led(green_led, 2)
 
-    # Tronquer le texte si nécessaire pour qu'il tienne sur l'écran
-    item_name = response_json['name'][:16]
+    # Insert scanned product to logs
+    cursor = db.cursor()
+    query = "INSERT INTO scan_history (barcode, product_name, price) VALUES (%s, %s, %s)"
+    values = (code, response_json['name'], response_json['price'])
+    cursor.execute(query, values)
+    db.commit()
 
-    display_text(item_name, 0)
+    display_text(response_json['name'][:16], 0)
     display_text(str(response_json['price']), 1)
 
     sleep(2)
@@ -98,6 +110,7 @@ def scan_item(code):
 # 465659887454
 # 3124480167026
 # 3398284433537
+# X000U80C67
 
 
 while True:
