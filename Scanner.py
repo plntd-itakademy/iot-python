@@ -78,8 +78,8 @@ def scan_item(code):
 
     if (not is_json(response.text) or not "price" in response.json() or not "name" in response.json()):
         turn_on_led(red_led, 2)
-        display_text("", 1)
         display_text("Code barre inconnu", 0)
+        display_text("", 1)
         return
 
     response_json = response.json()
@@ -116,4 +116,6 @@ def scan_item(code):
 while True:
     scanned_code = input("Code barre du produit : ")
     scroll_threads_running = [False, False]
-    scan_item(scanned_code)
+
+    scan_thread = threading.Thread(target=scan_item, args=(scanned_code,))
+    scan_thread.start()
